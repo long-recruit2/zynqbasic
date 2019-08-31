@@ -87,6 +87,7 @@ module ZYBO_top
         if (!rstn) pl_counter<=0;
         else pl_counter<=pl_counter+1;
 
+    /*
     logic [3:0] sw_r = 0;
     logic [3:0] btn_r = 0;
 
@@ -96,6 +97,7 @@ module ZYBO_top
             btn_r <= btn;
         end
     end
+    */
 
     logic [31:0] prev_ps_counter = 0;
     always_ff @(posedge clk)
@@ -136,6 +138,9 @@ module ZYBO_top
         led6_b = all_not_pressed;
 
     logic [3:0] key;
+    always_comb
+        led = key == 'hA ? keys[2] : key;
+
     logic pressed;
     keypad_decode #(CLK_FREQ, POLL_PERIOD) decode(
         .sysclk(sysclk),
@@ -149,7 +154,6 @@ module ZYBO_top
     logic [3:0] answer[2:0] = '{ 'h1, 'h2, 'h3}; // 123
     always_ff @(posedge sysclk) begin
         keyupdated <= 0;
-        eventupdated <= None;
         if(pressed) begin
             if (key == 'hA) begin
                 if(keys == answer) begin
@@ -170,15 +174,13 @@ module ZYBO_top
             end
             else begin
                 keyupdated <= 1;
+                eventupdated <= None;
                 keys <= {keys[1:0], key};
                 led5_b <= 'b0;
                 led5_r <= 'b0;
             end
         end
     end
-
-    always_comb
-        led = key == 'hA ? keys[2] : key;
 
 endmodule : ZYBO_top
 
