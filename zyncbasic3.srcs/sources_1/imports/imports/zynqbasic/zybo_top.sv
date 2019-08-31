@@ -146,7 +146,7 @@ module ZYBO_top
         .all_not_pressed(all_not_pressed)
     );
 
-    parameter [3:0] answer[2:0] = '{ 'h1, 'h2, 'h3}; // 123
+    logic [3:0] answer[2:0] = '{ 'h1, 'h2, 'h3}; // 123
     always_ff @(posedge sysclk) begin
         keyupdated <= 0;
         eventupdated <= None;
@@ -166,6 +166,7 @@ module ZYBO_top
             else if (key == 'hB) begin
                 // store new password
                 eventupdated <=  NewPassword;
+                answer <= keys;
             end
             else begin
                 keyupdated <= 1;
