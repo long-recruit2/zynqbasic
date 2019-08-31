@@ -67,7 +67,8 @@ module PmodOLEDCtrl
 		.FIN(example_done),
 		.KEYS(KEYS),
 		.KEYTRIGGER(SCREEN_UPDATE),
-		.PSCOUNTER(PSCOUNTER)
+		.PSCOUNTER(PSCOUNTER),
+		.EVENTUPDATE(EVENTUPDATE)
 	);
 
 	//MUXes to indicate which outputs are routed out depending on which block is enabled

@@ -1,4 +1,7 @@
 `timescale 1ns / 1ps
+`include "type.sv"
+
+import types::*;
 
 module OledEX(
     input logic CLK,
@@ -11,7 +14,8 @@ module OledEX(
     output logic FIN,
     input logic [3:0] KEYS[2:0],
     input logic KEYTRIGGER,
-	input logic [31:0] PSCOUNTER
+	input logic [31:0] PSCOUNTER,
+	input event_t EVENTUPDATE
     );
 
 	// wire CS, SDO, SCLK, DC, FIN;
@@ -27,15 +31,43 @@ module OledEX(
    parameter [7:0]  digilent_screen[0:3][0:15] = '{'{8'h54, 8'h68, 8'h69, 8'h73, 8'h20, 8'h69, 8'h73, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}, '{8'h44, 8'h69, 8'h67, 8'h69, 8'h6C, 8'h65, 8'h6E, 8'h74, 8'h27, 8'h73, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}, '{8'h50, 8'h6D, 8'h6F, 8'h64, 8'h4F, 8'h4C, 8'h45, 8'h44, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}, '{8'h53, 8'h65, 8'h69, 8'h6A, 8'h69, 8'h20, 8'h48, 8'h69, 8'h6e, 8'h6f, 8'h6b, 8'h69, 8'h79, 8'h61, 8'h20, 8'h20}};
    // parameter [7:0]  digilent_screen[0:3][0:15] = {"This is", "Digilent's", "PmodOLED", "Seiji Hinokiya"};
 
-   logic [7:0]  clear_screen2[0:3][0:15];
+   // parameter [7:0]  wrong_password[0:15] = '{'{8'h54, 8'h68, 8'h69, 8'h73, 8'h20, 8'h69, 8'h73, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}, '{8'h44, 8'h69, 8'h67, 8'h69, 8'h6C, 8'h65, 8'h6E, 8'h74, 8'h27, 8'h73, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}, '{8'h50, 8'h6D, 8'h6F, 8'h64, 8'h4F, 8'h4C, 8'h45, 8'h44, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}, '{8'h53, 8'h65, 8'h69, 8'h6A, 8'h69, 8'h20, 8'h48, 8'h69, 8'h6e, 8'h6f, 8'h6b, 8'h69, 8'h79, 8'h61, 8'h20, 8'h20}};
+   // parameter [7:0]  clear_screen  [0:15] = '{'{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}, '{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},'{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}, '{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
+   logic [7:0] wrong_password [0:15] = {8'h57, 8'h72, 8'h6F, 8'h6E, 8'h67, 8'h20, 8'h50, 8'h61, 8'h73, 8'h73, 8'h77, 8'h6F, 8'h72, 8'h64, 8'h20, 8'h20};
+   logic [7:0] correct_password [0:15] = {8'h43, 8'h6F, 8'h72, 8'h72, 8'h65, 8'h63, 8'h74, 8'h20, 8'h50, 8'h61, 8'h73, 8'h73, 8'h77, 8'h6F, 8'h72, 8'h64};
+   logic [7:0] new_password [0:15] = {8'h53, 8'h65, 8'h74, 8'h20, 8'h4E, 8'h65, 8'h77, 8'h20, 8'h50, 8'h61, 8'h73, 8'h73, 8'h77, 8'h6F, 8'h72, 8'h64};
+
+   logic [7:0] key_screen[0:3][0:15];
    always_ff @(posedge CLK) begin
 	   // if (KEY != 4'hA)
-		   clear_screen2 <=
+	   if (EVENTUPDATE == WrongAnswer) begin
+		   key_screen <=
 			   '{'{KEYS[2] + 'h30, KEYS[1] + 'h30, KEYS[0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
-			   //'{'{KEYS[1] + 'h30, KEYS[0] + 'h30, KEY + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
+			   '{ PSCOUNTER[31:28] + 'h30, PSCOUNTER[27:24] + 'h30, PSCOUNTER[23:20] + 'h30, PSCOUNTER[19:16] + 'h30, PSCOUNTER[15:12] + 'h30, PSCOUNTER[11:8] + 'h30, PSCOUNTER[7:4] + 'h30, PSCOUNTER[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
+			   {wrong_password},
+			   '{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
+	   end
+	   else if (EVENTUPDATE == RightAnswer) begin
+		   key_screen <=
+			   '{'{KEYS[2] + 'h30, KEYS[1] + 'h30, KEYS[0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
+			   '{ PSCOUNTER[31:28] + 'h30, PSCOUNTER[27:24] + 'h30, PSCOUNTER[23:20] + 'h30, PSCOUNTER[19:16] + 'h30, PSCOUNTER[15:12] + 'h30, PSCOUNTER[11:8] + 'h30, PSCOUNTER[7:4] + 'h30, PSCOUNTER[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
+			   {correct_password},
+			   '{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
+	   end
+	   else if (EVENTUPDATE == NewPassword) begin
+		   key_screen <=
+			   '{'{KEYS[2] + 'h30, KEYS[1] + 'h30, KEYS[0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
+			   '{ PSCOUNTER[31:28] + 'h30, PSCOUNTER[27:24] + 'h30, PSCOUNTER[23:20] + 'h30, PSCOUNTER[19:16] + 'h30, PSCOUNTER[15:12] + 'h30, PSCOUNTER[11:8] + 'h30, PSCOUNTER[7:4] + 'h30, PSCOUNTER[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
+			   {new_password},
+			   '{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
+	   end
+	   else begin
+		   key_screen <=
+			   '{'{KEYS[2] + 'h30, KEYS[1] + 'h30, KEYS[0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 			   '{ PSCOUNTER[31:28] + 'h30, PSCOUNTER[27:24] + 'h30, PSCOUNTER[23:20] + 'h30, PSCOUNTER[19:16] + 'h30, PSCOUNTER[15:12] + 'h30, PSCOUNTER[11:8] + 'h30, PSCOUNTER[7:4] + 'h30, PSCOUNTER[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 			   '{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 			   '{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
+	   end
    end
 
     typedef enum logic[$clog2(27)-1:0] {
@@ -197,7 +229,7 @@ module OledEX(
 					for(i = 0; i <= 3 ; i=i+1) begin
 						for(j = 0; j <= 15 ; j=j+1) begin
 								// current_screen[i][j] <= digilent_screen[i][j];
-								current_screen[i][j] <= clear_screen2[i][j];
+								current_screen[i][j] <= key_screen[i][j];
 						end
 					end
 					
