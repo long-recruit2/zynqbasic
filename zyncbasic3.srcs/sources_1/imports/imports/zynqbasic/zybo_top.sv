@@ -6,10 +6,10 @@
 import types::*; // * is required to import enum label
 
 module ZYBO_top
- #(
-    parameter CLK_FREQ = 125e6,
-    parameter POLL_PERIOD = 1e-3
-)(
+    #(
+        parameter CLK_FREQ = 125e6,
+        parameter POLL_PERIOD = 1e-3
+    )(
     input wire sysclk,
     // input wire rst,
     // input wire CLK125M,
@@ -49,7 +49,7 @@ module ZYBO_top
     logic rstn;
     always_comb
         rstn = arm_rstno;
-        // rstn=rst;
+    // rstn=rst;
 
     Zynq_PS Zynq_PS_i(
         // these ports come from zynq

@@ -4,21 +4,21 @@
 import types::*;
 
 module PmodOLEDCtrl
-(
-	input logic CLK,
-	input logic RST,
-	output logic CS,
-	output logic SDIN,
-	output logic SCLK,
-	output logic DC,
-	output logic RES,
-	output logic VBAT,
-	output logic VDD,
-	input logic [3:0] KEYS[2:0],
-	input logic SCREEN_UPDATE,
-	input logic [31:0] PSCOUNTER,
-	input event_t EVENTUPDATE
-);
+	(
+		input logic CLK,
+		input logic RST,
+		output logic CS,
+		output logic SDIN,
+		output logic SCLK,
+		output logic DC,
+		output logic RES,
+		output logic VBAT,
+		output logic VDD,
+		input logic [3:0] KEYS[2:0],
+		input logic SCREEN_UPDATE,
+		input logic [31:0] PSCOUNTER,
+		input event_t EVENTUPDATE
+	);
 
 	typedef enum logic[$clog2(4)-1:0] {
 		Idle,

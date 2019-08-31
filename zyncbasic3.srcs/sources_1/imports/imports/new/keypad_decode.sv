@@ -85,8 +85,6 @@ module keypad_decode #(
 
     always_comb
         pressed = all_not_pressed == 0 && all_not_pressed_prev == 1;
-
-
-
+    
 endmodule : keypad_decode
 `default_nettype wire
