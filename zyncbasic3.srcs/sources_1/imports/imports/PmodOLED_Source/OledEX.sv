@@ -37,6 +37,35 @@ module OledEX(
 		ps_counter_i = PSCOUNTER;
 
 	logic [3:0] decimal[0:9]; // int max 2147483647 // replace with genvar
+
+	logic [4*10-1:0] outbcd;
+	logic completed;
+	logic bcdrst = 0;
+	logic start = 0;
+	always_ff @(posedge CLK) begin
+		if(completed) begin
+			bcdrst <= 1;
+			start <= 0;
+		end
+		else if(bcdrst == 1) begin
+			bcdrst <= 0;
+			start <= 1;
+		end
+		else begin
+			start <= 0;
+		end
+	end
+	binary_to_bcd bcd(
+		.clk_i(CLK),
+		.ce_i(1),
+		.rst_i(bcdrst),
+		.start_i(start),
+		.dat_binary_i(PSCOUNTER),
+		.dat_bcd_o(outbcd),
+		.done_o(completed)
+	);
+
+	// this still does not work yet
 	/*
 	integer index;
 	always_comb begin
@@ -47,6 +76,7 @@ module OledEX(
 		end
 	end
 	*/
+	/*
 	genvar index;
 	// genvar ps_counter_t = ps_counter_i;
 	generate
@@ -57,7 +87,7 @@ module OledEX(
 			end
 		end
 	endgenerate
-
+    */
 	logic [7:0] key_screen[0:3][0:15];
 	always_ff @(posedge CLK) begin
 		// if (KEY != 4'hA)
@@ -87,6 +117,7 @@ module OledEX(
 				'{'{KEYS[2] + 'h30, KEYS[1] + 'h30, KEYS[0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				'{ PSCOUNTER[31:28] + 'h30, PSCOUNTER[27:24] + 'h30, PSCOUNTER[23:20] + 'h30, PSCOUNTER[19:16] + 'h30, PSCOUNTER[15:12] + 'h30, PSCOUNTER[11:8] + 'h30, PSCOUNTER[7:4] + 'h30, PSCOUNTER[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				// this still doesnt work
+				// '{ outbcd[39:36]+ 'h30, outbcd[35:32] + 'h30, outbcd[31:28] + 'h30, outbcd[27:24] + 'h30, outbcd[23:20] + 'h30, outbcd[19:16] + 'h30, outbcd[15:12] + 'h30, outbcd[11:8] + 'h30, outbcd[7:4] + 'h30, outbcd[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				// '{ decimal[0]+ 'h30, decimal[1] + 'h30, decimal[2] + 'h30, decimal[3] + 'h30, decimal[4] + 'h30, decimal[5] + 'h30, decimal[6] + 'h30, decimal[7] + 'h30, decimal[8] + 'h30, decimal[9] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				'{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				'{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
@@ -108,7 +139,7 @@ module OledEX(
 		Alphabet,
 		UpdateScreen,
 		ClearScreen,
-		DigilentScreen,
+		KeyScreen,
 		SendChar1,
 		SendChar2,
 		SendChar3,
@@ -206,57 +237,13 @@ module OledEX(
 				if(EN == 1'b1) begin
 					current_state <= ClearDC;
 					// after_page_state <= Alphabet;
-					after_page_state <= DigilentScreen;
+					after_page_state <= KeyScreen;
 					temp_page <= 2'b00;
 				end
 			end
 
-			/*
-			// Set current_screen to constant alphabet_screen and update the screen.  Go to state Wait1 afterwards
-			Alphabet : begin
-				for(i = 0; i <= 3 ; i=i+1) begin
-					for(j = 0; j <= 15 ; j=j+1) begin
-						current_screen[i][j] <= alphabet_screen[i][j];
-					end
-				end
-
-				current_state <= UpdateScreen;
-				after_update_state <= Wait1;
-			end
-			*/
-
-			/*
-			// Wait 4ms and go to ClearScreen
-			Wait1 : begin
-				temp_delay_ms <= 12'b111110100000; //4000
-				after_state <= ClearScreen;
-				current_state <= Transition3; // Transition3 = The delay transition states
-			end
-			*/
-			/*
-			// set current_screen to constant clear_screen and update the screen. Go to state Wait2 afterwards
-			ClearScreen : begin
-				for(i = 0; i <= 3 ; i=i+1) begin
-					for(j = 0; j <= 15 ; j=j+1) begin
-						current_screen[i][j] <= clear_screen[i][j];
-					end
-				end
-
-				after_update_state <= Wait2;
-				current_state <= UpdateScreen;
-			end
-			*/
-			/*
-			// Wait 1ms and go to DigilentScreen
-			Wait2 : begin
-				temp_delay_ms <= 12'b001111101000; //1000
-				after_state <= DigilentScreen;
-				current_state <= Transition3; // Transition3 = The delay transition states
-			end
-			*/
-
 			// Set currentScreen to constant digilent_screen and update the screen. Go to state Done afterwards
-			DigilentScreen : begin
+			KeyScreen : begin
 				for(i = 0; i <= 3 ; i=i+1) begin
 					for(j = 0; j <= 15 ; j=j+1) begin
 						current_screen[i][j] <= key_screen[i][j];
@@ -269,7 +256,7 @@ module OledEX(
 
 			WaitInput : begin
 				if(KEYTRIGGER == 'b1)
-					current_state <= DigilentScreen;
+					current_state <= KeyScreen;
 			end
 
 			// Do nothing until EN is deassertted and then current_state is Idle
@@ -284,11 +271,8 @@ module OledEX(
 			//2. If on the last character of the page transition update the page number, if on the last page(3)
 			//			then the updateScreen go to after_update_state after
 			UpdateScreen : begin
-
 				temp_char <= current_screen[temp_page][temp_index];
-
 				if(temp_index == 'd15) begin
-
 					temp_index <= 'd0;
 					temp_page <= temp_page + 1'b1;
 					after_char_state <= ClearDC;
@@ -301,14 +285,10 @@ module OledEX(
 					end
 				end
 				else begin
-
 					temp_index <= temp_index + 1'b1;
 					after_char_state <= UpdateScreen;
-
 				end
-
 				current_state <= SendChar1;
-
 			end
 
 			//Update Page states
@@ -457,8 +437,6 @@ module OledEX(
 			//END Clear transition
 
 			default : current_state <= Idle;
-
 		endcase
 	end
-
 endmodule

@@ -29,6 +29,10 @@ module genvartest;
 	always_comb
 		ps_counter_i = PSCOUNTER;
 
+    reg [31:0] PREV_PSCOUNTER = 0;
+    always_ff @(posedge clk)
+        PREV_PSCOUNTER <= PSCOUNTER;
+
 	logic [3:0] decimal[0:9]; // int max 2147483647 // replace with genvar
 	logic [31:0] ps_counter_t[0:9];
 	genvar index;
@@ -43,6 +47,27 @@ module genvartest;
 		end
 	endgenerate
     
+    logic [4*10-1:0] outbcd;
+    logic completed;
+    logic start = 0;
+    always_ff @(posedge clk) begin
+        if(completed || PREV_PSCOUNTER != PSCOUNTER) begin
+            start <= 1;
+        end
+        else begin
+            start <= 0;
+        end
+    end
+    binary_to_bcd bcd(
+        .clk_i(clk),
+        .ce_i(1),
+        .rst_i(0),
+        .start_i(start),
+        .dat_binary_i(PSCOUNTER),
+        .dat_bcd_o(outbcd),
+        .done_o(completed)
+    );
+    
     initial begin
         clk <= 0;
         rst <= 1;
@@ -50,11 +75,11 @@ module genvartest;
         ##10
         rst <= 0;
         PSCOUNTER <= PSCOUNTER + 1;
-        ##10
+        ##100
         PSCOUNTER <= PSCOUNTER + 10;
-        ##10
+        ##100
         PSCOUNTER <= PSCOUNTER + 100;
-        ##10
+        ##100
         PSCOUNTER <= PSCOUNTER + 1000;
         $finish();
     end
