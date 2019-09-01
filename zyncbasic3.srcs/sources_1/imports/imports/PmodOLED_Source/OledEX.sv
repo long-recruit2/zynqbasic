@@ -23,16 +23,40 @@ module OledEX(
 	//Variable that contains what the screen will be after the next UpdateScreen state
 	logic [7:0] current_screen[0:3][0:15];
 
-	//Constant that contains the screen filled with the Alphabet and numbers
-	parameter [7:0]  alphabet_screen[0:3][0:15] = '{'{8'h41, 8'h42, 8'h43, 8'h44, 8'h45, 8'h46, 8'h47, 8'h48, 8'h49, 8'h4A, 8'h4B, 8'h4C, 8'h4D, 8'h4E, 8'h4F, 8'h50}, '{8'h51, 8'h52, 8'h53, 8'h54, 8'h55, 8'h56, 8'h57, 8'h58, 8'h59, 8'h5A, 8'h61, 8'h62, 8'h63, 8'h64, 8'h65, 8'h66}, '{8'h67, 8'h68, 8'h69, 8'h6A, 8'h6B, 8'h6C, 8'h6D, 8'h6E, 8'h6F, 8'h70, 8'h71, 8'h72, 8'h73, 8'h74, 8'h75, 8'h76}, '{8'h77, 8'h78, 8'h79, 8'h7A, 8'h30, 8'h31, 8'h32, 8'h33, 8'h34, 8'h35, 8'h36, 8'h37, 8'h38, 8'h39, 8'h7F, 8'h7F}};
-	//Constant that fills the screen with blank (spaces) entries
+	// Constant that contains the screen filled with the Alphabet and numbers
+	// parameter [7:0]  alphabet_screen[0:3][0:15] = '{'{8'h41, 8'h42, 8'h43, 8'h44, 8'h45, 8'h46, 8'h47, 8'h48, 8'h49, 8'h4A, 8'h4B, 8'h4C, 8'h4D, 8'h4E, 8'h4F, 8'h50}, '{8'h51, 8'h52, 8'h53, 8'h54, 8'h55, 8'h56, 8'h57, 8'h58, 8'h59, 8'h5A, 8'h61, 8'h62, 8'h63, 8'h64, 8'h65, 8'h66}, '{8'h67, 8'h68, 8'h69, 8'h6A, 8'h6B, 8'h6C, 8'h6D, 8'h6E, 8'h6F, 8'h70, 8'h71, 8'h72, 8'h73, 8'h74, 8'h75, 8'h76}, '{8'h77, 8'h78, 8'h79, 8'h7A, 8'h30, 8'h31, 8'h32, 8'h33, 8'h34, 8'h35, 8'h36, 8'h37, 8'h38, 8'h39, 8'h7F, 8'h7F}};
+	// Constant that fills the screen with blank (spaces) entries
 	parameter [7:0]  clear_screen[0:3][0:15] = '{'{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}, '{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},'{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}, '{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
-	//Constant that holds "This is Digilent's PmodOLED"   //Constant that holds "This is Digilent's PmodOLED"
-	parameter [7:0]  digilent_screen[0:3][0:15] = '{'{8'h54, 8'h68, 8'h69, 8'h73, 8'h20, 8'h69, 8'h73, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}, '{8'h44, 8'h69, 8'h67, 8'h69, 8'h6C, 8'h65, 8'h6E, 8'h74, 8'h27, 8'h73, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}, '{8'h50, 8'h6D, 8'h6F, 8'h64, 8'h4F, 8'h4C, 8'h45, 8'h44, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}, '{8'h53, 8'h65, 8'h69, 8'h6A, 8'h69, 8'h20, 8'h48, 8'h69, 8'h6e, 8'h6f, 8'h6b, 8'h69, 8'h79, 8'h61, 8'h20, 8'h20}};
 
 	logic [7:0] wrong_password [0:15] = {8'h57, 8'h72, 8'h6F, 8'h6E, 8'h67, 8'h20, 8'h50, 8'h61, 8'h73, 8'h73, 8'h77, 8'h6F, 8'h72, 8'h64, 8'h20, 8'h20};
 	logic [7:0] correct_password [0:15] = {8'h43, 8'h6F, 8'h72, 8'h72, 8'h65, 8'h63, 8'h74, 8'h20, 8'h50, 8'h61, 8'h73, 8'h73, 8'h77, 8'h6F, 8'h72, 8'h64};
 	logic [7:0] new_password [0:15] = {8'h53, 8'h65, 8'h74, 8'h20, 8'h4E, 8'h65, 8'h77, 8'h20, 8'h50, 8'h61, 8'h73, 8'h73, 8'h77, 8'h6F, 8'h72, 8'h64};
+
+	int ps_counter_i;
+	always_comb
+		ps_counter_i = PSCOUNTER;
+
+	logic [3:0] decimal[0:9]; // int max 2147483647 // replace with genvar
+	/*
+	integer index;
+	always_comb begin
+		integer ps_counter_t = ps_counter_i;
+		for(index = 0; index <= 10; index += 1) begin
+			decimal[index] = ps_counter_t % 10;
+			ps_counter_t = ps_counter_t / 10;
+		end
+	end
+	*/
+	genvar index;
+	// genvar ps_counter_t = ps_counter_i;
+	generate
+		for (index = 0; index < 10; index = index + 1) begin
+			always_comb begin
+				int ps_counter_t = int'(ps_counter_i / (10 ^ index));
+				decimal[index] = ps_counter_t % 10;
+			end
+		end
+	endgenerate
 
 	logic [7:0] key_screen[0:3][0:15];
 	always_ff @(posedge CLK) begin
@@ -62,10 +86,14 @@ module OledEX(
 			key_screen <=
 				'{'{KEYS[2] + 'h30, KEYS[1] + 'h30, KEYS[0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				'{ PSCOUNTER[31:28] + 'h30, PSCOUNTER[27:24] + 'h30, PSCOUNTER[23:20] + 'h30, PSCOUNTER[19:16] + 'h30, PSCOUNTER[15:12] + 'h30, PSCOUNTER[11:8] + 'h30, PSCOUNTER[7:4] + 'h30, PSCOUNTER[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
+				// this still doesnt work
+				// '{ decimal[0]+ 'h30, decimal[1] + 'h30, decimal[2] + 'h30, decimal[3] + 'h30, decimal[4] + 'h30, decimal[5] + 'h30, decimal[6] + 'h30, decimal[7] + 'h30, decimal[8] + 'h30, decimal[9] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				'{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				'{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
 		end
 	end
+
+
 
 	typedef enum logic[$clog2(27)-1:0] {
 		Idle,
@@ -183,6 +211,7 @@ module OledEX(
 				end
 			end
 
+			/*
 			// Set current_screen to constant alphabet_screen and update the screen.  Go to state Wait1 afterwards
 			Alphabet : begin
 				for(i = 0; i <= 3 ; i=i+1) begin
@@ -194,14 +223,17 @@ module OledEX(
 				current_state <= UpdateScreen;
 				after_update_state <= Wait1;
 			end
+			*/
 
+			/*
 			// Wait 4ms and go to ClearScreen
 			Wait1 : begin
 				temp_delay_ms <= 12'b111110100000; //4000
 				after_state <= ClearScreen;
 				current_state <= Transition3; // Transition3 = The delay transition states
 			end
-
+			*/
+			/*
 			// set current_screen to constant clear_screen and update the screen. Go to state Wait2 afterwards
 			ClearScreen : begin
 				for(i = 0; i <= 3 ; i=i+1) begin
@@ -213,13 +245,15 @@ module OledEX(
 				after_update_state <= Wait2;
 				current_state <= UpdateScreen;
 			end
-
+			*/
+			/*
 			// Wait 1ms and go to DigilentScreen
 			Wait2 : begin
 				temp_delay_ms <= 12'b001111101000; //1000
 				after_state <= DigilentScreen;
 				current_state <= Transition3; // Transition3 = The delay transition states
 			end
+			*/
 
 			// Set currentScreen to constant digilent_screen and update the screen. Go to state Done afterwards
 			DigilentScreen : begin
