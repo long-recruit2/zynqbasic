@@ -36,7 +36,7 @@ module OledEX(
 	always_comb
 		ps_counter_i = PSCOUNTER;
 
-	logic [3:0] decimal[0:9]; // int max 2147483647 // replace with genvar
+	// logic [3:0] decimal[0:9]; // int max 2147483647 // replace with genvar
 
 	logic [4*10-1:0] outbcd;
 	logic completed;
@@ -55,6 +55,66 @@ module OledEX(
 			start <= 0;
 		end
 	end
+	
+	
+	/*
+    input        CLK,
+    input        RST,
+ 
+    input        en,
+    input [31:0] bin,
+ 
+    output [3:0] bcd0,
+    output [3:0] bcd1,
+    output [3:0] bcd2,
+    output [3:0] bcd3,
+    output [3:0] bcd4,
+    output [3:0] bcd5,
+    output [3:0] bcd6,
+    output [3:0] bcd7,
+    output [3:0] bcd8,
+    output [3:0] bcd9,
+ 
+    output       busy,
+    output       fin	
+	*/
+	/*
+	logic rst = 1;
+	logic en = 1;
+	logic busy;
+	logic fin;
+    bin2bcd32 bcd(
+        .CLK(CLK),
+        .RST(rst),
+        .en(en),
+        .bin(PSCOUNTER),
+        .bcd0(decimal[0]),
+        .bcd1(decimal[1]),
+        .bcd2(decimal[2]),    
+        .bcd3(decimal[3]),
+        .bcd4(decimal[4]),
+        .bcd5(decimal[5]),
+        .bcd6(decimal[6]),
+        .bcd7(decimal[7]),
+        .bcd8(decimal[8]),    
+        .bcd9(decimal[9]),
+        .busy(busy),
+        .fin(fin)   
+    );
+    +/
+    
+    /*
+ #( parameter                W = 18)  // input width
+     ( input      [W-1      :0] bin   ,  // binary
+       output reg [W+(W-4)/3:0] bcd   ); // bcd {...,thousands,hundreds,tens,ones}    
+    */
+    bin2bcd #(.W(32)) bcd2
+    (
+        .bin(PSCOUNTER),
+        .bcd(outbcd)
+    );
+    
+	/*
 	binary_to_bcd bcd(
 		.clk_i(CLK),
 		.ce_i(1),
@@ -64,6 +124,7 @@ module OledEX(
 		.dat_bcd_o(outbcd),
 		.done_o(completed)
 	);
+	*/
 
 	// this still does not work yet
 	/*
@@ -96,31 +157,35 @@ module OledEX(
 				'{'{KEYS[2] + 'h30, KEYS[1] + 'h30, KEYS[0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				'{ PSCOUNTER[31:28] + 'h30, PSCOUNTER[27:24] + 'h30, PSCOUNTER[23:20] + 'h30, PSCOUNTER[19:16] + 'h30, PSCOUNTER[15:12] + 'h30, PSCOUNTER[11:8] + 'h30, PSCOUNTER[7:4] + 'h30, PSCOUNTER[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				{wrong_password},
-				'{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
+				// '{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
+				'{ outbcd[39:36]+ 'h30, outbcd[35:32] + 'h30, outbcd[31:28] + 'h30, outbcd[27:24] + 'h30, outbcd[23:20] + 'h30, outbcd[19:16] + 'h30, outbcd[15:12] + 'h30, outbcd[11:8] + 'h30, outbcd[7:4] + 'h30, outbcd[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
 		end
 		else if (EVENTUPDATE == RightAnswer) begin
 			key_screen <=
 				'{'{KEYS[2] + 'h30, KEYS[1] + 'h30, KEYS[0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				'{ PSCOUNTER[31:28] + 'h30, PSCOUNTER[27:24] + 'h30, PSCOUNTER[23:20] + 'h30, PSCOUNTER[19:16] + 'h30, PSCOUNTER[15:12] + 'h30, PSCOUNTER[11:8] + 'h30, PSCOUNTER[7:4] + 'h30, PSCOUNTER[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				{correct_password},
-				'{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
+				// '{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
+				'{ outbcd[39:36]+ 'h30, outbcd[35:32] + 'h30, outbcd[31:28] + 'h30, outbcd[27:24] + 'h30, outbcd[23:20] + 'h30, outbcd[19:16] + 'h30, outbcd[15:12] + 'h30, outbcd[11:8] + 'h30, outbcd[7:4] + 'h30, outbcd[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
 		end
 		else if (EVENTUPDATE == NewPassword) begin
 			key_screen <=
 				'{'{KEYS[2] + 'h30, KEYS[1] + 'h30, KEYS[0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				'{ PSCOUNTER[31:28] + 'h30, PSCOUNTER[27:24] + 'h30, PSCOUNTER[23:20] + 'h30, PSCOUNTER[19:16] + 'h30, PSCOUNTER[15:12] + 'h30, PSCOUNTER[11:8] + 'h30, PSCOUNTER[7:4] + 'h30, PSCOUNTER[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				{new_password},
-				'{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
+				'{ outbcd[39:36]+ 'h30, outbcd[35:32] + 'h30, outbcd[31:28] + 'h30, outbcd[27:24] + 'h30, outbcd[23:20] + 'h30, outbcd[19:16] + 'h30, outbcd[15:12] + 'h30, outbcd[11:8] + 'h30, outbcd[7:4] + 'h30, outbcd[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
+				// '{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
 		end
 		else begin
 			key_screen <=
 				'{'{KEYS[2] + 'h30, KEYS[1] + 'h30, KEYS[0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				'{ PSCOUNTER[31:28] + 'h30, PSCOUNTER[27:24] + 'h30, PSCOUNTER[23:20] + 'h30, PSCOUNTER[19:16] + 'h30, PSCOUNTER[15:12] + 'h30, PSCOUNTER[11:8] + 'h30, PSCOUNTER[7:4] + 'h30, PSCOUNTER[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				// this still doesnt work
-				// '{ outbcd[39:36]+ 'h30, outbcd[35:32] + 'h30, outbcd[31:28] + 'h30, outbcd[27:24] + 'h30, outbcd[23:20] + 'h30, outbcd[19:16] + 'h30, outbcd[15:12] + 'h30, outbcd[11:8] + 'h30, outbcd[7:4] + 'h30, outbcd[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
-				// '{ decimal[0]+ 'h30, decimal[1] + 'h30, decimal[2] + 'h30, decimal[3] + 'h30, decimal[4] + 'h30, decimal[5] + 'h30, decimal[6] + 'h30, decimal[7] + 'h30, decimal[8] + 'h30, decimal[9] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				'{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
-				'{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
+				'{ outbcd[39:36]+ 'h30, outbcd[35:32] + 'h30, outbcd[31:28] + 'h30, outbcd[27:24] + 'h30, outbcd[23:20] + 'h30, outbcd[19:16] + 'h30, outbcd[15:12] + 'h30, outbcd[11:8] + 'h30, outbcd[7:4] + 'h30, outbcd[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
+				// '{ decimal[0]+ 'h30, decimal[1] + 'h30, decimal[2] + 'h30, decimal[3] + 'h30, decimal[4] + 'h30, decimal[5] + 'h30, decimal[6] + 'h30, decimal[7] + 'h30, decimal[8] + 'h30, decimal[9] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
+				// '{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
+				// '{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
 		end
 	end
 
