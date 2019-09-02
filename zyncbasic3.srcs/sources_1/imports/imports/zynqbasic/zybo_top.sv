@@ -36,11 +36,11 @@ module ZYBO_top
     (* fsm_encoding = "none" *) output logic [3:0] col // jb
 );
 
-    wire 	arm_clko;
-    wire 	arm_rstno;
+    logic arm_clko;
+    logic arm_rstno;
 
-    wire [31:0] arm_gpo01;
-    wire [31:0] ps_counter;
+    logic [31:0] arm_gpo01;
+    logic [31:0] ps_counter;
 
     logic clk;
     always_comb
@@ -82,10 +82,20 @@ module ZYBO_top
         .gpo01(arm_gpo01), // out from cpu, in to PL (counter)
         .gpo02(ps_counter));
 
-    reg [31:0] 	pl_counter = 0;
-    always @(posedge clk)
-        if (!rstn) pl_counter<=0;
-        else pl_counter<=pl_counter+1;
+    logic [31:0] pl_counter = 0;
+    always_ff @(posedge clk)
+        if (!rstn) pl_counter <= 0;
+        else pl_counter<= pl_counter + 1;
+
+    logic counter_changed; // wire
+    counter_event #(.W(32)) ev (
+        .clk(clk),
+        .rstn(rstn),
+        .counter(ps_counter),
+        .changed(counter_changed)
+    );
+
+    /*
 
     logic [31:0] prev_ps_counter = 0;
     always_ff @(posedge clk)
@@ -93,6 +103,7 @@ module ZYBO_top
     logic counter_changed;
     always_comb
         counter_changed = ps_counter != prev_ps_counter;
+    */
 
     // apparently this module only runs with 100MHz clock
     logic [3:0] keys[2:0];
