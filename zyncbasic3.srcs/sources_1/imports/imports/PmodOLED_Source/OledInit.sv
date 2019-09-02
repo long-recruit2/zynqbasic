@@ -99,6 +99,8 @@ module OledInit(
 				VddOn : begin
 					VDD <= 'b0;
 					current_state <= Wait1;
+					// after_state <= DispOff;
+					// current_state <= Transition3;
 				end
 
 				// 3

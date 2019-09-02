@@ -84,15 +84,12 @@ module OledEX(
 
 	typedef enum logic[$clog2(27)-1:0] {
 		Idle,
-		// Wait1,
-		// Wait2,
 		SetSPIEn,
 		WaitSPIFin,
-		Transition3,
-		Transition4,
-		Transition_Done,
+		SetDelayEn,
+		WaitDelayFin,
+		ClearSPIDelay,
 		ClearDC,
-		// Alphabet,
 		UpdateScreen,
 		ClearScreen,
 		KeyScreen,
@@ -338,9 +335,9 @@ module OledEX(
 			end
 
 			ReadMem : begin
-				// current_state <= ReadMem2;
-				temp_spi_data <= temp_dout;
-				current_state <= SetSPIEn;
+				current_state <= ReadMem2;
+				// temp_spi_data <= temp_dout;
+				// current_state <= SetSPIEn;
 			end
 
 			ReadMem2 : begin
@@ -360,7 +357,7 @@ module OledEX(
 
 			WaitSPIFin: begin
 				if(temp_spi_fin == 1'b1) begin
-					current_state <= Transition_Done;
+					current_state <= ClearSPIDelay;
 				end
 			end
 
@@ -368,21 +365,21 @@ module OledEX(
 			// 1. Set DELAY_EN to 1
 			// 2. Waits for Delay to finish
 			// 3. Goes to Clear state (Transition_Done)
-			Transition3 : begin
+			SetDelayEn: begin
 				temp_delay_en <= 1'b1;
-				current_state <= Transition4;
+				current_state <= WaitDelayFin;
 			end
 
-			Transition4 : begin
+			WaitDelayFin: begin
 				if(temp_delay_fin == 1'b1) begin
-					current_state <= Transition_Done;
+					current_state <= ClearSPIDelay;
 				end
 			end
 
 			// Clear transition
 			// 1. Sets both DELAY_EN and SPI_EN to 0
 			// 2. Go to after state
-			Transition_Done : begin
+			ClearSPIDelay: begin
 				temp_spi_en <= 1'b0;
 				temp_delay_en <= 1'b0;
 				current_state <= after_state;
