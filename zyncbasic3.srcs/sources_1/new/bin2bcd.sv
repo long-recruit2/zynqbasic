@@ -1,148 +1,129 @@
-`timescale 1ns / 1ps
+////////////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2012, Ameer M. Abdelhadi; ameer@ece.ubc.ca. All rights reserved. //
+//                                                                                //
+// Redistribution  and  use  in  source   and  binary  forms,   with  or  without //
+// modification,  are permitted  provided that  the following conditions are met: //
+//   * Redistributions   of  source   code  must  retain   the   above  copyright //
+//     notice,  this   list   of   conditions   and   the  following  disclaimer. //
+//   * Redistributions  in  binary  form  must  reproduce  the  above   copyright //
+//     notice, this  list  of  conditions  and the  following  disclaimer in  the //
+//     documentation and/or  other  materials  provided  with  the  distribution. //
+//   * Neither the name of the University of British Columbia (UBC) nor the names //
+//     of   its   contributors  may  be  used  to  endorse  or   promote products //
+//     derived from  this  software without  specific  prior  written permission. //
+//                                                                                //
+// THIS  SOFTWARE IS  PROVIDED  BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" //
+// AND  ANY EXPRESS  OR IMPLIED WARRANTIES,  INCLUDING,  BUT NOT LIMITED TO,  THE //
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE //
+// DISCLAIMED.  IN NO  EVENT SHALL University of British Columbia (UBC) BE LIABLE //
+// FOR ANY DIRECT,  INDIRECT,  INCIDENTAL,  SPECIAL,  EXEMPLARY, OR CONSEQUENTIAL //
+// DAMAGES  (INCLUDING,  BUT NOT LIMITED TO,  PROCUREMENT OF  SUBSTITUTE GOODS OR //
+// SERVICES;  LOSS OF USE,  DATA,  OR PROFITS;  OR BUSINESS INTERRUPTION) HOWEVER //
+// CAUSED AND ON ANY THEORY OF LIABILITY,  WHETHER IN CONTRACT, STRICT LIABILITY, //
+// OR TORT  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE //
+// OF  THIS SOFTWARE,  EVEN  IF  ADVISED  OF  THE  POSSIBILITY  OF  SUCH  DAMAGE. //
+////////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////////
+//                 bin2bcd.v:  Parametric  Binary to BCD Converter                //
+//                 Using Double Dabble / Shift and Add 3 Algorithm                //
+//                                                                                //
+// Ameer M.S. Abdelhadi (ameer@ece.ubc.ca; ameer.abdelhadi@gmail.com), Sept. 2012 //
+////////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////////
+//                                 18-bit Example                                 //
+//                                                                                //
+//                     B  B  B  B  B  B  B  B  B  B  B  B  B  B  B  B  B  B       //
+//                     I  I  I  I  I  I  I  I  I  I  I  I  I  I  I  I  I  I       //
+//                     N  N  N  N  N  N  N  N  N  N  N  N  N  N  N  N  N  N       //
+//                     1  1  1  1  1  1  1  1  9  8  7  6  5  4  3  2  1  0       //
+//     '0 '0 '0 '0 '0  7  6  5  4  3  2  1  0  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  |  V__V__V__V  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  | /IF>4THEN+3\ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  | \__________/ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  |  |  V__V__V__V  |  |  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  |  | /IF>4THEN+3\ |  |  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  |  | \__________/ |  |  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  |  |  |  V__V__V__V  |  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  |  |  | /IF>4THEN+3\ |  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  |  |  | \__________/ |  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  V__V__V__V  V__V__V__V  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  | /IF>4THEN+3\/IF>4THEN+3\ |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  | \__________/\__________/ |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  |  V__V__V__V  V__V__V__V  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  | /IF>4THEN+3\/IF>4THEN+3\ |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  | \__________/\__________/ |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  |  |  V__V__V__V  V__V__V__V  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  |  | /IF>4THEN+3\/IF>4THEN+3\ |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  |  | \__________/\__________/ |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  V__V__V__V  V__V__V__V  V__V__V__V  |  |  |  |  |  |  |  |  |       //
+//      |  | /IF>4THEN+3\/IF>4THEN+3\/IF>4THEN+3\ |  |  |  |  |  |  |  |  |       //
+//      |  | \__________/\__________/\__________/ |  |  |  |  |  |  |  |  |       //
+//      |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  V__V__V__V  V__V__V__V  V__V__V__V  |  |  |  |  |  |  |  |       //
+//      |  |  | /IF>4THEN+3\/IF>4THEN+3\/IF>4THEN+3\ |  |  |  |  |  |  |  |       //
+//      |  |  | \__________/\__________/\__________/ |  |  |  |  |  |  |  |       //
+//      |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  |  V__V__V__V  V__V__V__V  V__V__V__V  |  |  |  |  |  |  |       //
+//      |  |  |  | /IF>4THEN+3\/IF>4THEN+3\/IF>4THEN+3\ |  |  |  |  |  |  |       //
+//      |  |  |  | \__________/\__________/\__________/ |  |  |  |  |  |  |       //
+//      |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  V__V__V__V  V__V__V__V  V__V__V__V  V__V__V__V  |  |  |  |  |  |       //
+//      | /IF>4THEN+3\/IF>4THEN+3\/IF>4THEN+3\/IF>4THEN+3\ |  |  |  |  |  |       //
+//      | \__________/\__________/\__________/\__________/ |  |  |  |  |  |       //
+//      |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  V__V__V__V  V__V__V__V  V__V__V__V  V__V__V__V  |  |  |  |  |       //
+//      |  | /IF>4THEN+3\/IF>4THEN+3\/IF>4THEN+3\/IF>4THEN+3\ |  |  |  |  |       //
+//      |  | \__________/\__________/\__________/\__________/ |  |  |  |  |       //
+//      |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  |  V__V__V__V  V__V__V__V  V__V__V__V  V__V__V__V  |  |  |  |       //
+//      |  |  | /IF>4THEN+3\/IF>4THEN+3\/IF>4THEN+3\/IF>4THEN+3\ |  |  |  |       //
+//      |  |  | \__________/\__________/\__________/\__________/ |  |  |  |       //
+//      |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      V__V__V__V  V__V__V__V  V__V__V__V  V__V__V__V  V__V__V__V  |  |  |       //
+//     /IF>4THEN+3\/IF>4THEN+3\/IF>4THEN+3\/IF>4THEN+3\/IF>4THEN+3\ |  |  |       //
+//     \__________/\__________/\__________/\__________/\__________/ |  |  |       //
+//      |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  V__V__V__V  V__V__V__V  V__V__V__V  V__V__V__V  V__V__V__V  |  |       //
+//      | /IF>4THEN+3\/IF>4THEN+3\/IF>4THEN+3\/IF>4THEN+3\/IF>4THEN+3\ |  |       //
+//      | \__________/\__________/\__________/\__________/\__________/ |  |       //
+//      |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      |  |  V__V__V__V  V__V__V__V  V__V__V__V  V__V__V__V  V__V__V__V  |       //
+//      |  | /IF>4THEN+3\/IF>4THEN+3\/IF>4THEN+3\/IF>4THEN+3\/IF>4THEN+3\ |       //
+//      |  | \__________/\__________/\__________/\__________/\__________/ |       //
+//      |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |       //
+//      B  B  B  B  B  B  B  B  B  B  B  B  B  B  B  B  B  B  B  B  B  B  B       //
+//      C  C  C  C  C  C  C  C  C  C  C  C  C  C  C  C  C  C  C  C  C  C  C       //
+//      D  D  D  D  D  D  D  D  D  D  D  D  D  D  D  D  D  D  D  D  D  D  D       //
+//      2  2  2  1  1  1  1  1  1  1  1  1  1  9  8  7  6  5  4  3  2  1  0       //
+//      2  1  0  9  8  7  6  5  4  3  2  1  0                                     //
+//     \_______/\__________/\__________/\__________/\__________/\__________/      //
+//     100,000's  10,000's     1000's      100's        10's         1's          //
+//                                                                                //
+////////////////////////////////////////////////////////////////////////////////////
 
 module bin2bcd
- #( parameter                W = 18)  // input width
-  ( input      [W-1      :0] bin   ,  // binary
-    output reg [W+(W-4)/3:0] bcd   ); // bcd {...,thousands,hundreds,tens,ones}
+    #( parameter                W = 18)  // input width
+    ( input      [W-1      :0] bin   ,  // binary
+        output reg [W+(W-4)/3:0] bcd   ); // bcd {...,thousands,hundreds,tens,ones}
 
-  integer i,j;
+    integer i,j;
 
-  always @(bin) begin
-    for(i = 0; i <= W+(W-4)/3; i = i+1) bcd[i] = 0;     // initialize with zeros
-    bcd[W-1:0] = bin;                                   // initialize with input vector
-    for(i = 0; i <= W-4; i = i+1)                       // iterate on structure depth
-      for(j = 0; j <= i/3; j = j+1)                     // iterate on structure width
-        if (bcd[W-i+4*j -: 4] > 4)                      // if > 4
-          bcd[W-i+4*j -: 4] = bcd[W-i+4*j -: 4] + 4'd3; // add 3
-  end
-
-endmodule
-
-module bin2bcd32
-  (
-   input        CLK,
-   input        RST,
-
-   input        en,
-   input [31:0] bin,
-
-   output [3:0] bcd0,
-   output [3:0] bcd1,
-   output [3:0] bcd2,
-   output [3:0] bcd3,
-   output [3:0] bcd4,
-   output [3:0] bcd5,
-   output [3:0] bcd6,
-   output [3:0] bcd7,
-   output [3:0] bcd8,
-   output [3:0] bcd9,
-
-   output       busy,
-   output       fin
-   );
-
-   reg [31:0]   bin_r;
-   reg [4:0]    bitcount;
-   reg [3:0]    bcd[0:9];
-   wire [3:0]   bcdp[0:9];
-
-   assign bcd0 = bcd[0];
-   assign bcd1 = bcd[1];
-   assign bcd2 = bcd[2];
-   assign bcd3 = bcd[3];
-   assign bcd4 = bcd[4];
-   assign bcd5 = bcd[5];
-   assign bcd6 = bcd[6];
-   assign bcd7 = bcd[7];
-   assign bcd8 = bcd[8];
-   assign bcd9 = bcd[9];
-
-   localparam s_idle = 2'b00;
-   localparam s_busy = 2'b01;
-   localparam s_fin  = 2'b10;
-   reg [1:0]    state;
-
-   assign busy = state != s_idle;
-   assign fin  = state == s_fin;
-
-   always @(posedge CLK or negedge RST)
-     if (!RST) begin
-        state <= s_idle;
-     end else begin
-        case (state)
-          s_idle: 
-            if (en)
-              state <= s_busy;
-
-          s_busy:
-            if (bitcount == 5'd31)
-              state <= s_fin;
-
-          s_fin:
-            state <= s_idle;
-
-          default: ;
-        endcase
-     end
-
-   always @(posedge CLK) begin
-      case (state)
-        s_idle: 
-          if (en)
-            bin_r <= bin;
-        s_busy:
-          bin_r <= {bin_r[30:0], 1'b0};
-        default: ;
-      endcase
-   end
-
-   always @(posedge CLK or negedge RST)
-     if (!RST) begin
-        bitcount <= 5'd0;
-     end else begin
-        case (state)
-          s_busy:
-            bitcount <= bitcount + 5'd1;
-          
-          default: 
-            bitcount <= 5'd0;
-        endcase
-     end
-
-   generate
-      genvar g;
-
-      for (g=0; g<=9; g=g+1) begin : GEN_BCD
-
-         wire [3:0] s;
-         wire [3:0] prev;
-
-         assign bcdp[g] = (bcd[g] >= 4'd5) ? bcd[g] + 4'd3 : bcd[g];
-
-         if (g != 0) begin
-            assign prev = bcdp[g-1];
-         end else begin // if (g != 0)
-            assign prev = {bin_r[31], 3'b0};
-         end
-         assign s 
-           = ((bcdp[g] << 1) | (prev >> 3));
-
-         always @(posedge CLK or negedge RST)
-           if (!RST) begin
-              bcd[g] <= 4'd0;
-           end else begin
-              case (state)
-                s_idle: 
-                  bcd[g] <= 4'd0;
-
-                s_busy:
-                  bcd[g] <= s;
-
-                default: ;
-              endcase
-           end
-
-      end
-   endgenerate
+    always @(bin) begin
+        for(i = 0; i <= W+(W-4)/3; i = i+1) bcd[i] = 0;     // initialize with zeros
+        bcd[W-1:0] = bin;                                   // initialize with input vector
+        for(i = 0; i <= W-4; i = i+1)                       // iterate on structure depth
+            for(j = 0; j <= i/3; j = j+1)                     // iterate on structure width
+                if (bcd[W-i+4*j -: 4] > 4)                      // if > 4
+                    bcd[W-i+4*j -: 4] = bcd[W-i+4*j -: 4] + 4'd3; // add 3
+    end
 
 endmodule

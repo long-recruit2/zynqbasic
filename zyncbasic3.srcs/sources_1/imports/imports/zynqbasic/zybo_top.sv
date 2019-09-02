@@ -87,18 +87,6 @@ module ZYBO_top
         if (!rstn) pl_counter<=0;
         else pl_counter<=pl_counter+1;
 
-    /*
-    logic [3:0] sw_r = 0;
-    logic [3:0] btn_r = 0;
-
-    always_ff @(posedge clk) begin
-        if (pl_counter==0) begin // anti-chattering
-            sw_r  <= sw;
-            btn_r <= btn;
-        end
-    end
-    */
-
     logic [31:0] prev_ps_counter = 0;
     always_ff @(posedge clk)
         prev_ps_counter <= ps_counter;
