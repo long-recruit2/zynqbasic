@@ -32,32 +32,6 @@ module OledEX(
 	logic [7:0] correct_password [0:15] = {8'h43, 8'h6F, 8'h72, 8'h72, 8'h65, 8'h63, 8'h74, 8'h20, 8'h50, 8'h61, 8'h73, 8'h73, 8'h77, 8'h6F, 8'h72, 8'h64};
 	logic [7:0] new_password [0:15] = {8'h53, 8'h65, 8'h74, 8'h20, 8'h4E, 8'h65, 8'h77, 8'h20, 8'h50, 8'h61, 8'h73, 8'h73, 8'h77, 8'h6F, 8'h72, 8'h64};
 
-    /*
-	int ps_counter_i;
-	always_comb
-		ps_counter_i = PSCOUNTER;
-    */
-
-	// logic [3:0] decimal[0:9]; // int max 2147483647 // replace with genvar
-    /*
-	logic completed;
-	logic bcdrst = 0;
-	logic start = 0;
-	always_ff @(posedge CLK) begin
-		if(completed) begin
-			bcdrst <= 1;
-			start <= 0;
-		end
-		else if(bcdrst == 1) begin
-			bcdrst <= 0;
-			start <= 1;
-		end
-		else begin
-			start <= 0;
-		end
-	end
-	*/
-
 	logic [4*10-1:0] outbcd;
     bin2bcd #(.W(32)) bcd2
     (
@@ -70,7 +44,8 @@ module OledEX(
 		if (EVENTUPDATE == WrongAnswer) begin
 			key_screen <=
 				'{'{KEYS[2] + 'h30, KEYS[1] + 'h30, KEYS[0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
-				'{ PSCOUNTER[31:28] + 'h30, PSCOUNTER[27:24] + 'h30, PSCOUNTER[23:20] + 'h30, PSCOUNTER[19:16] + 'h30, PSCOUNTER[15:12] + 'h30, PSCOUNTER[11:8] + 'h30, PSCOUNTER[7:4] + 'h30, PSCOUNTER[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
+				// '{ PSCOUNTER[31:28] + 'h30, PSCOUNTER[27:24] + 'h30, PSCOUNTER[23:20] + 'h30, PSCOUNTER[19:16] + 'h30, PSCOUNTER[15:12] + 'h30, PSCOUNTER[11:8] + 'h30, PSCOUNTER[7:4] + 'h30, PSCOUNTER[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
+				'{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				{wrong_password},
 				// '{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
 				'{ outbcd[39:36]+ 'h30, outbcd[35:32] + 'h30, outbcd[31:28] + 'h30, outbcd[27:24] + 'h30, outbcd[23:20] + 'h30, outbcd[19:16] + 'h30, outbcd[15:12] + 'h30, outbcd[11:8] + 'h30, outbcd[7:4] + 'h30, outbcd[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
@@ -78,7 +53,8 @@ module OledEX(
 		else if (EVENTUPDATE == RightAnswer) begin
 			key_screen <=
 				'{'{KEYS[2] + 'h30, KEYS[1] + 'h30, KEYS[0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
-				'{ PSCOUNTER[31:28] + 'h30, PSCOUNTER[27:24] + 'h30, PSCOUNTER[23:20] + 'h30, PSCOUNTER[19:16] + 'h30, PSCOUNTER[15:12] + 'h30, PSCOUNTER[11:8] + 'h30, PSCOUNTER[7:4] + 'h30, PSCOUNTER[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
+				// '{ PSCOUNTER[31:28] + 'h30, PSCOUNTER[27:24] + 'h30, PSCOUNTER[23:20] + 'h30, PSCOUNTER[19:16] + 'h30, PSCOUNTER[15:12] + 'h30, PSCOUNTER[11:8] + 'h30, PSCOUNTER[7:4] + 'h30, PSCOUNTER[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
+				'{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				{correct_password},
 				// '{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
 				'{ outbcd[39:36]+ 'h30, outbcd[35:32] + 'h30, outbcd[31:28] + 'h30, outbcd[27:24] + 'h30, outbcd[23:20] + 'h30, outbcd[19:16] + 'h30, outbcd[15:12] + 'h30, outbcd[11:8] + 'h30, outbcd[7:4] + 'h30, outbcd[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
@@ -86,7 +62,8 @@ module OledEX(
 		else if (EVENTUPDATE == NewPassword) begin
 			key_screen <=
 				'{'{KEYS[2] + 'h30, KEYS[1] + 'h30, KEYS[0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
-				'{ PSCOUNTER[31:28] + 'h30, PSCOUNTER[27:24] + 'h30, PSCOUNTER[23:20] + 'h30, PSCOUNTER[19:16] + 'h30, PSCOUNTER[15:12] + 'h30, PSCOUNTER[11:8] + 'h30, PSCOUNTER[7:4] + 'h30, PSCOUNTER[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
+				'{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
+				// '{ PSCOUNTER[31:28] + 'h30, PSCOUNTER[27:24] + 'h30, PSCOUNTER[23:20] + 'h30, PSCOUNTER[19:16] + 'h30, PSCOUNTER[15:12] + 'h30, PSCOUNTER[11:8] + 'h30, PSCOUNTER[7:4] + 'h30, PSCOUNTER[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				{new_password},
 				'{ outbcd[39:36]+ 'h30, outbcd[35:32] + 'h30, outbcd[31:28] + 'h30, outbcd[27:24] + 'h30, outbcd[23:20] + 'h30, outbcd[19:16] + 'h30, outbcd[15:12] + 'h30, outbcd[11:8] + 'h30, outbcd[7:4] + 'h30, outbcd[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
 				// '{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
@@ -94,7 +71,8 @@ module OledEX(
 		else begin
 			key_screen <=
 				'{'{KEYS[2] + 'h30, KEYS[1] + 'h30, KEYS[0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
-				'{ PSCOUNTER[31:28] + 'h30, PSCOUNTER[27:24] + 'h30, PSCOUNTER[23:20] + 'h30, PSCOUNTER[19:16] + 'h30, PSCOUNTER[15:12] + 'h30, PSCOUNTER[11:8] + 'h30, PSCOUNTER[7:4] + 'h30, PSCOUNTER[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
+				'{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
+				// '{ PSCOUNTER[31:28] + 'h30, PSCOUNTER[27:24] + 'h30, PSCOUNTER[23:20] + 'h30, PSCOUNTER[19:16] + 'h30, PSCOUNTER[15:12] + 'h30, PSCOUNTER[11:8] + 'h30, PSCOUNTER[7:4] + 'h30, PSCOUNTER[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				// this still doesnt work
 				'{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				'{ outbcd[39:36]+ 'h30, outbcd[35:32] + 'h30, outbcd[31:28] + 'h30, outbcd[27:24] + 'h30, outbcd[23:20] + 'h30, outbcd[19:16] + 'h30, outbcd[15:12] + 'h30, outbcd[11:8] + 'h30, outbcd[7:4] + 'h30, outbcd[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
@@ -106,15 +84,15 @@ module OledEX(
 
 	typedef enum logic[$clog2(27)-1:0] {
 		Idle,
-		Wait1,
-		Wait2,
-		Transition1,
-		Transition2,
+		// Wait1,
+		// Wait2,
+		SetSPIEn,
+		WaitSPIFin,
 		Transition3,
 		Transition4,
-		Transition5,
+		Transition_Done,
 		ClearDC,
-		Alphabet,
+		// Alphabet,
 		UpdateScreen,
 		ClearScreen,
 		KeyScreen,
@@ -175,7 +153,8 @@ module OledEX(
 
 	// assign DC = temp_dc;
 	//Example finish flag only high when in done state
-	assign FIN = (current_state == Done) ? 1'b1 : 1'b0;
+	always_comb
+		FIN = (current_state == Done) ? 1'b1 : 1'b0;
 
 	//Instantiate SPI Block
 	SpiCtrl SPI_COMP(
@@ -212,7 +191,6 @@ module OledEX(
 			Idle : begin
 				if(EN == 1'b1) begin
 					current_state <= ClearDC;
-					// after_page_state <= Alphabet;
 					after_page_state <= KeyScreen;
 					temp_page <= 2'b00;
 				end
@@ -225,7 +203,6 @@ module OledEX(
 						current_screen[i][j] <= key_screen[i][j];
 					end
 				end
-
 				after_update_state <= WaitInput;
 				current_state <= UpdateScreen;
 			end
@@ -281,25 +258,25 @@ module OledEX(
 			SetPage : begin
 				temp_spi_data <= 8'b00100010;
 				after_state <= PageNum;
-				current_state <= Transition1;
+				current_state <= SetSPIEn;
 			end
 
 			PageNum : begin
 				temp_spi_data <= {6'b000000,temp_page};
 				after_state <= LeftColumn1;
-				current_state <= Transition1;
+				current_state <= SetSPIEn;
 			end
 
 			LeftColumn1 : begin
 				temp_spi_data <= 8'b00000000;
 				after_state <= LeftColumn2;
-				current_state <= Transition1;
+				current_state <= SetSPIEn;
 			end
 
 			LeftColumn2 : begin
 				temp_spi_data <= 8'b00010000;
 				after_state <= SetDC;
-				current_state <= Transition1;
+				current_state <= SetSPIEn;
 			end
 
 			SetDC : begin
@@ -361,12 +338,14 @@ module OledEX(
 			end
 
 			ReadMem : begin
-				current_state <= ReadMem2;
+				// current_state <= ReadMem2;
+				temp_spi_data <= temp_dout;
+				current_state <= SetSPIEn;
 			end
 
 			ReadMem2 : begin
 				temp_spi_data <= temp_dout;
-				current_state <= Transition1;
+				current_state <= SetSPIEn;
 			end
 			//  End Send Character States
 
@@ -374,21 +353,21 @@ module OledEX(
 			// 1. Set SPI_EN to 1
 			// 2. Waits for SpiCtrl to finish
 			// 3. Goes to clear state (Transition5)
-			Transition1 : begin
+			SetSPIEn: begin
 				temp_spi_en <= 1'b1;
-				current_state <= Transition2;
+				current_state <= WaitSPIFin;
 			end
 
-			Transition2 : begin
+			WaitSPIFin: begin
 				if(temp_spi_fin == 1'b1) begin
-					current_state <= Transition5;
+					current_state <= Transition_Done;
 				end
 			end
 
 			// Delay Transitions
 			// 1. Set DELAY_EN to 1
 			// 2. Waits for Delay to finish
-			// 3. Goes to Clear state (Transition5)
+			// 3. Goes to Clear state (Transition_Done)
 			Transition3 : begin
 				temp_delay_en <= 1'b1;
 				current_state <= Transition4;
@@ -396,14 +375,14 @@ module OledEX(
 
 			Transition4 : begin
 				if(temp_delay_fin == 1'b1) begin
-					current_state <= Transition5;
+					current_state <= Transition_Done;
 				end
 			end
 
 			// Clear transition
 			// 1. Sets both DELAY_EN and SPI_EN to 0
 			// 2. Go to after state
-			Transition5 : begin
+			Transition_Done : begin
 				temp_spi_en <= 1'b0;
 				temp_delay_en <= 1'b0;
 				current_state <= after_state;

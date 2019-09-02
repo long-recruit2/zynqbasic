@@ -95,16 +95,6 @@ module ZYBO_top
         .changed(counter_changed)
     );
 
-    /*
-
-    logic [31:0] prev_ps_counter = 0;
-    always_ff @(posedge clk)
-        prev_ps_counter <= ps_counter;
-    logic counter_changed;
-    always_comb
-        counter_changed = ps_counter != prev_ps_counter;
-    */
-
     // apparently this module only runs with 100MHz clock
     logic [3:0] keys[2:0];
 
