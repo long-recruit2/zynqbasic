@@ -104,11 +104,13 @@ module OledInit(
 					current_state <= SetDelayEn;
 				end
 
+				/*
 				// 3
 				Wait1 : begin
 					after_state <= DispOff;
 					current_state <= SetDelayEn;
 				end
+				*/
 
 				// 4
 				DispOff : begin
@@ -121,7 +123,9 @@ module OledInit(
 				ResetOn : begin
 					// temp_res <= 'b0;
 					RES <= 'b0;
-					current_state <= Wait2;
+					// current_state <= Wait2;
+					after_state <= ResetOff;
+					current_state <= SetDelayEn;
 				end
 
 				// 6
@@ -170,7 +174,9 @@ module OledInit(
 				VbatOn : begin
 					// temp_vbat <= 'b0;
 					VBAT <= 'b0;
-					current_state <= Wait3;
+					// current_state <= Wait3;
+					after_state <= DispContrast1;
+					current_state <= SetDelayEn;
 				end
 
 				// 13
