@@ -24,7 +24,8 @@ module PmodOLEDCtrl
 		Idle,
 		OledInitialize,
 		OledExample,
-		Done} state_t;
+		Done
+	} state_t;
 
 	state_t current_state = Idle;
 

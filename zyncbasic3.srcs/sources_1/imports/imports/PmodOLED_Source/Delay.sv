@@ -11,7 +11,8 @@ module Delay(
 	typedef enum logic[$clog2(3)-1:0] {
 		Idle,
 		Hold,
-		Done} state_t;
+		Done
+	} state_t;
 
 	state_t current_state = Idle;						// Signal for state machine
 	logic [16:0] clk_counter = 17'b00000000000000000;	// Counts up on every rising edge of CLK
@@ -39,6 +40,7 @@ module Delay(
 				end
 				Done : begin
 					// Wait until DELAY_EN is deasserted to go to IDLE
+					// Once its done, will directly go to Idle and stay until next hold
 					if(DELAY_EN == 1'b0)
 						current_state <= Idle;
 				end
@@ -52,7 +54,7 @@ module Delay(
 	// CLK_DIV
 	always @(posedge CLK) begin
 		if(current_state == Hold) begin
-			if(clk_counter == 17'b11000011010100000) begin		// 100,000
+			if(clk_counter == 17'b11000011010100000) begin		    // 100,000
 				clk_counter <= 17'b00000000000000000;
 				ms_counter <= ms_counter + 1'b1;					// increments at 1KHz
 			end

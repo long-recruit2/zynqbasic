@@ -20,11 +20,11 @@ module OledInit(
 		Wait1,
 		Wait2,
 		Wait3,
-		Transition1,
-		Transition2,
-		Transition3,
-		Transition4,
-		Transition5,
+		SetSPIEn,
+		WaitSPIFin,
+		SetDelayEn,
+		WaitDelayFin,
+		ClearSPIDelay,
 		ResetOn,
 		ResetOff,
 		ChargePump1,
@@ -98,22 +98,23 @@ module OledInit(
 				// This should be done everytime the PmodOLED is started
 				VddOn : begin
 					VDD <= 'b0;
-					current_state <= Wait1;
-					// after_state <= DispOff;
-					// current_state <= Transition3;
+					// current_state <= Wait1;
+					// did not work, may need to wait 1 clk
+					after_state <= DispOff;
+					current_state <= SetDelayEn;
 				end
 
 				// 3
 				Wait1 : begin
 					after_state <= DispOff;
-					current_state <= Transition3;
+					current_state <= SetDelayEn;
 				end
 
 				// 4
 				DispOff : begin
 					temp_spi_data <= 8'hAE; // 0xAE
 					after_state <= ResetOn;
-					current_state <= Transition1;
+					current_state <= SetSPIEn;
 				end
 
 				// 5
@@ -126,7 +127,7 @@ module OledInit(
 				// 6
 				Wait2 : begin
 					after_state <= ResetOff;
-					current_state <= Transition3;
+					current_state <= SetDelayEn;
 				end
 
 				// 7
@@ -134,35 +135,35 @@ module OledInit(
 					// temp_res <= 'b1;
 					RES <= 'b1;
 					after_state <= ChargePump1;
-					current_state <= Transition3;
+					current_state <= SetDelayEn;
 				end
 
 				// 8
 				ChargePump1 : begin
 					temp_spi_data <= 8'h8D; //0x8D
 					after_state <= ChargePump2;
-					current_state <= Transition1;
+					current_state <= SetSPIEn;
 				end
 
 				// 9
 				ChargePump2 : begin
 					temp_spi_data <= 8'h14; // 0x14
 					after_state <= PreCharge1;
-					current_state <= Transition1;
+					current_state <= SetSPIEn;
 				end
 
 				// 10
 				PreCharge1 : begin
 					temp_spi_data <= 8'hD9; // 0xD9
 					after_state <= PreCharge2;
-					current_state <= Transition1;
+					current_state <= SetSPIEn;
 				end
 
 				// 11
 				PreCharge2 : begin
 					temp_spi_data <= 8'hF1; // 0xF1
 					after_state <= VbatOn;
-					current_state <= Transition1;
+					current_state <= SetSPIEn;
 				end
 
 				// 12
@@ -175,56 +176,56 @@ module OledInit(
 				// 13
 				Wait3 : begin
 					after_state <= DispContrast1;
-					current_state <= Transition3;
+					current_state <= SetDelayEn;
 				end
 
 				// 14
 				DispContrast1 : begin
 					temp_spi_data <= 8'h81; // 0x81
 					after_state <= DispContrast2;
-					current_state <= Transition1;
+					current_state <= SetSPIEn;
 				end
 
 				// 15
 				DispContrast2 : begin
 					temp_spi_data <= 8'h0F; // 0x0F
 					after_state <= InvertDisp1;
-					current_state <= Transition1;
+					current_state <= SetSPIEn;
 				end
 
 				// 16
 				InvertDisp1 : begin
 					temp_spi_data <= 8'hA1; // 0xA1
 					after_state <= InvertDisp2;
-					current_state <= Transition1;
+					current_state <= SetSPIEn;
 				end
 
 				// 17
 				InvertDisp2 : begin
 					temp_spi_data <= 8'hC8; // 0xC8
 					after_state <= ComConfig1;
-					current_state <= Transition1;
+					current_state <= SetSPIEn;
 				end
 
 				// 18
 				ComConfig1 : begin
 					temp_spi_data <= 8'hDA; // 0xDA
 					after_state <= ComConfig2;
-					current_state <= Transition1;
+					current_state <= SetSPIEn;
 				end
 
 				// 19
 				ComConfig2 : begin
 					temp_spi_data <= 8'h20; // 0x20
 					after_state <= DispOn;
-					current_state <= Transition1;
+					current_state <= SetSPIEn;
 				end
 
 				// 20
 				DispOn : begin
 					temp_spi_data <= 8'hAF; // 0xAF
 					after_state <= Done;
-					current_state <= Transition1;
+					current_state <= SetSPIEn;
 				end
 				// ************ END Initialization sequence ************
 
@@ -232,7 +233,7 @@ module OledInit(
 				FullDisp : begin
 					temp_spi_data <= 8'hA5; // 0xA5
 					after_state <= Done;
-					current_state <= Transition1;
+					current_state <= SetSPIEn;
 				end
 
 				// Done state
@@ -250,15 +251,15 @@ module OledInit(
 				// 1. Set SPI_EN to 1
 				// 2. Waits for SpiCtrl to finish
 				// 3. Goes to clear state (Transition5)
-				Transition1 : begin
+				SetSPIEn: begin
 					temp_spi_en <= 'b1;
-					current_state <= Transition2;
+					current_state <= WaitSPIFin;
 				end
 
 				// 24
-				Transition2 : begin
+				WaitSPIFin: begin
 					if(temp_spi_fin == 'b1) begin
-						current_state <= Transition5;
+						current_state <= ClearSPIDelay;
 					end
 				end
 
@@ -266,22 +267,22 @@ module OledInit(
 				// 1. Set DELAY_EN to 1
 				// 2. Waits for Delay to finish
 				// 3. Goes to Clear state (Transition5)
-				Transition3 : begin
+				SetDelayEn: begin
 					temp_delay_en <= 'b1;
-					current_state <= Transition4;
+					current_state <= WaitDelayFin;
 				end
 
 				// 26
-				Transition4 : begin
+				WaitDelayFin: begin
 					if(temp_delay_fin == 'b1) begin
-						current_state <= Transition5;
+						current_state <= ClearSPIDelay;
 					end
 				end
 
 				// Clear transition
 				// 1. Sets both DELAY_EN and SPI_EN to 0
 				// 2. Go to after state
-				Transition5 : begin
+				ClearSPIDelay: begin
 					temp_spi_en <= 'b0;
 					temp_delay_en <= 'b0;
 					current_state <= after_state;
