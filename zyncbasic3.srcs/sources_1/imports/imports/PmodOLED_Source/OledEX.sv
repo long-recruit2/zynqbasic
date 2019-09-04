@@ -106,8 +106,8 @@ module OledEX(
 		LeftColumn1,
 		LeftColumn2,
 		SetDC,
-		ReadMem,
-		ReadMem2,
+		WaitMemRead,
+		MemRead,
 		WaitInput,
 		Done} state_t;
 
@@ -122,8 +122,8 @@ module OledEX(
 	//State to go to after the UpdateScreen is finished
 	state_t after_update_state;
 
-	integer i = 0;
-	integer j = 0;
+	int i = 0;
+	int j = 0;
 
 	//Contains the value to be outputted to DC
 	// reg temp_dc;
@@ -139,8 +139,8 @@ module OledEX(
 	wire temp_spi_fin;				//Finish signal for the SPI block
 
 	logic [7:0] temp_char;				//Contains ASCII value for character
-	logic [10:0] temp_addr;			//Contains address to BYTE needed in memory
-	wire [7:0] temp_dout;			//Contains byte outputted from memory
+	logic [10:0] mem_addr;			//Contains address to BYTE needed in memory
+	wire [7:0] mem_data;			//Contains byte outputted from memory
 	logic [1:0] temp_page;				//Current page
 	logic [3:0] temp_index;			//Current character on page
 
@@ -175,10 +175,11 @@ module OledEX(
 	);
 
 	//Instantiate Memory Block
+	// set address and will read data after one clock
 	charLib CHAR_LIB_COMP(
 		.clka(CLK),
-		.addra(temp_addr),
-		.douta(temp_dout)
+		.addra(mem_addr),
+		.douta(mem_data)
 	);
 
 	//  State Machine
@@ -287,61 +288,60 @@ module OledEX(
 			//3. Send the byte of data given by the block Ram
 			//4. Repeat 7 more times for the rest of the character bytes
 			SendChar1 : begin
-				temp_addr <= {temp_char, 3'b000}; // temp_addr -> temp_dout
+				mem_addr <= {temp_char, 3'b000}; // temp_addr -> temp_dout
 				after_state <= SendChar2;
-				current_state <= ReadMem;
+				current_state <= WaitMemRead;
 			end
 
 			SendChar2 : begin
-				temp_addr <= {temp_char, 3'b001};
+				mem_addr <= {temp_char, 3'b001};
 				after_state <= SendChar3;
-				current_state <= ReadMem;
+				current_state <= WaitMemRead;
 			end
 
 			SendChar3 : begin
-				temp_addr <= {temp_char, 3'b010};
+				mem_addr <= {temp_char, 3'b010};
 				after_state <= SendChar4;
-				current_state <= ReadMem;
+				current_state <= WaitMemRead;
 			end
 
 			SendChar4 : begin
-				temp_addr <= {temp_char, 3'b011};
+				mem_addr <= {temp_char, 3'b011};
 				after_state <= SendChar5;
-				current_state <= ReadMem;
+				current_state <= WaitMemRead;
 			end
 
 			SendChar5 : begin
-				temp_addr <= {temp_char, 3'b100};
+				mem_addr <= {temp_char, 3'b100};
 				after_state <= SendChar6;
-				current_state <= ReadMem;
+				current_state <= WaitMemRead;
 			end
 
 			SendChar6 : begin
-				temp_addr <= {temp_char, 3'b101};
+				mem_addr <= {temp_char, 3'b101};
 				after_state <= SendChar7;
-				current_state <= ReadMem;
+				current_state <= WaitMemRead;
 			end
 
 			SendChar7 : begin
-				temp_addr <= {temp_char, 3'b110};
+				mem_addr <= {temp_char, 3'b110};
 				after_state <= SendChar8;
-				current_state <= ReadMem;
+				current_state <= WaitMemRead;
 			end
 
 			SendChar8 : begin
-				temp_addr <= {temp_char, 3'b111};
+				mem_addr <= {temp_char, 3'b111};
 				after_state <= after_char_state;
-				current_state <= ReadMem;
+				current_state <= WaitMemRead;
 			end
 
-			ReadMem : begin
-				current_state <= ReadMem2;
-				// temp_spi_data <= temp_dout;
-				// current_state <= SetSPIEn;
+			WaitMemRead: begin
+				// when it sets temp_addr, it takes one clock to read data to temp_dout
+				current_state <= MemRead;
 			end
 
-			ReadMem2 : begin
-				temp_spi_data <= temp_dout;
+			MemRead: begin
+				temp_spi_data <= mem_data;
 				current_state <= SetSPIEn;
 			end
 			//  End Send Character States
