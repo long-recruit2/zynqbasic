@@ -17,7 +17,11 @@ module PmodOLEDCtrl
 		input logic [3:0] KEYS[2:0],
 		input logic SCREEN_UPDATE,
 		input logic [31:0] PSCOUNTER,
-		input event_t EVENTUPDATE
+		input event_t EVENTUPDATE,
+		input logic [3:0] TENS,
+		input logic [3:0] ONES,
+		input logic [7:0] read_data,
+        input logic [7:0] read_data1
 	);
 
 	typedef enum logic[$clog2(4)-1:0] {
@@ -55,6 +59,7 @@ module PmodOLEDCtrl
 		.VBAT(VBAT),
 		.VDD(VDD),
 		.FIN(init_done)
+
 	);
 
 	OledEX Example(
@@ -69,7 +74,11 @@ module PmodOLEDCtrl
 		.KEYS(KEYS),
 		.KEYTRIGGER(SCREEN_UPDATE),
 		.PSCOUNTER(PSCOUNTER),
-		.EVENTUPDATE(EVENTUPDATE)
+		.EVENTUPDATE(EVENTUPDATE),
+		.TENS(TENS),
+		.ONES(ONES),
+		.read_data(read_data),
+		.read_data1(read_data1)
 	);
 
 	//MUXes to indicate which outputs are routed out depending on which block is enabled
@@ -117,4 +126,4 @@ module PmodOLEDCtrl
 			endcase
 		end
 	end
-endmodule
+endmodule : PmodOLEDCtrl

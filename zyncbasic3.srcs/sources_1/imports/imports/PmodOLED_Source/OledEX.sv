@@ -15,7 +15,11 @@ module OledEX(
 	input logic [3:0] KEYS[2:0],
 	input logic KEYTRIGGER,
 	input logic [31:0] PSCOUNTER,
-	input event_t EVENTUPDATE
+	input event_t EVENTUPDATE,
+	input logic [3:0] TENS,
+	input logic [3:0] ONES,
+	input logic [7:0] read_data,
+    input logic [7:0] read_data1
 );
 
 	// wire CS, SDO, SCLK, DC, FIN;
@@ -74,7 +78,7 @@ module OledEX(
 				'{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				// '{ PSCOUNTER[31:28] + 'h30, PSCOUNTER[27:24] + 'h30, PSCOUNTER[23:20] + 'h30, PSCOUNTER[19:16] + 'h30, PSCOUNTER[15:12] + 'h30, PSCOUNTER[11:8] + 'h30, PSCOUNTER[7:4] + 'h30, PSCOUNTER[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				// this still doesnt work
-				'{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
+				'{TENS + 'h30, ONES + 'h30, read_data[7:4] + 'h30, read_data[3:0] + 'h30, read_data1[7:4] + 'h30, read_data1[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				'{ outbcd[39:36]+ 'h30, outbcd[35:32] + 'h30, outbcd[31:28] + 'h30, outbcd[27:24] + 'h30, outbcd[23:20] + 'h30, outbcd[19:16] + 'h30, outbcd[15:12] + 'h30, outbcd[11:8] + 'h30, outbcd[7:4] + 'h30, outbcd[3:0] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20}};
 				// '{ decimal[0]+ 'h30, decimal[1] + 'h30, decimal[2] + 'h30, decimal[3] + 'h30, decimal[4] + 'h30, decimal[5] + 'h30, decimal[6] + 'h30, decimal[7] + 'h30, decimal[8] + 'h30, decimal[9] + 'h30, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},
 				// '{8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20, 8'h20},

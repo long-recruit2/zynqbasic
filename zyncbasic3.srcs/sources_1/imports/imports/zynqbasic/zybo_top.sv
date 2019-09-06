@@ -13,7 +13,7 @@ module ZYBO_top
     input wire sysclk,
     // input wire rst,
     // input wire CLK125M,
-    input wire [3:0] btn,
+    // input wire [3:0] btn,
     input wire [3:0] sw,
     inout wire [14:0] DDR_addr,
     inout wire [2:0] DDR_ba,
@@ -30,12 +30,42 @@ module ZYBO_top
     output logic led6_b,
     output logic led5_b,
     output logic led5_r,
-    (* fsm_encoding = "none" *) output logic [7:0] jc,
+    // (* fsm_encoding = "none" *) output logic [7:0] jc,
+    output logic scljd1,
+    inout wire sdajd1,
+    output logic scljd2,
+    inout wire sdajd2,
+    output logic scljc1,
+    inout wire sdajc1,
+    output logic scljc2,
+    inout wire sdajc2,
     (* fsm_encoding = "none" *) output logic [7:0] je,
     input wire [3:0] row,            // jb
     (* fsm_encoding = "none" *) output logic [3:0] col // jb
 );
+    /*
+    logic scljc;
+    assign scljc1 = scljc;
+    assign scljc2 = scljc;
+    
+    logic sdajc;
+    assign sdajc1 = sdajc; // To drive the inout net
+    assign sdajc = sdajc1; // To read from inout net
+    assign sdajc2 = sdajc; // To drive the inout net
+    assign sdajc = sdajc2; // To read from inout net
 
+
+    logic scljd;
+    assign scljd1 = scljd;
+    assign scljd2 = scljd;
+    
+    logic sdajd;
+    assign sdajd1 = sdajd; // To drive the inout net
+    assign sdajd = sdajd1; // To read from inout net
+    assign sdajd2 = sdajd; // To drive the inout net
+    assign sdajd = sdajd2; // To read from inout net
+    */
+    
     logic arm_clko;
     logic arm_rstno;
 
@@ -119,8 +149,13 @@ module ZYBO_top
         .KEYS(keys),
         .SCREEN_UPDATE(keyupdated || counter_changed || eventupdated != None),
         .PSCOUNTER(ps_counter),
-        .EVENTUPDATE(eventupdated)
+        .EVENTUPDATE(eventupdated),
+        .TENS(tens),
+        .ONES(ones)
     );
+
+    // logic [3:0] tens;
+    // logic [3:0] ones;
 
     logic all_not_pressed;
     always_comb
@@ -139,6 +174,54 @@ module ZYBO_top
         .pressed(pressed),
         .all_not_pressed(all_not_pressed)
     );
+
+    /*
+        input clk,
+    input swF, rst, sw1, sw2,  //swF = sw15
+
+    output scl,
+    inout sda,
+    output wire [6:0] seg,
+    output wire [7:0] dig
+    output [3:0] tens,
+    output [3:0] ones
+    */
+    logic [6:0] seg;
+    logic [7:0] dig;
+    logic [3:0] tens;
+    logic [3:0] ones;
+    logic [15:0] data;
+    // logic sw1 = 1;
+    // logic sw2 = 1;
+    // logic swF = 1;
+    logic dummyscl;
+    logic dummysda;
+    i2c i(
+        .clk(sysclk),
+        .rst(rst),
+        .sw1(sw[0]),
+        .sw2(sw[1]),
+        .swF(sw[2]),
+        .scl(scljc1),
+        .sda(sdajc1),
+        .data(data),
+        .seg(seg),
+        .dig(dig),
+        .tens(tens),
+        .ones(ones)
+        );
+
+    logic [7:0] read_data;
+    logic [7:0] read_data1;
+    logic rstn = 1;
+    temp_sensor tmp(
+        .clk(sysclk),
+        .rst_n(rstn),
+        .scl(scljd1),
+        .sda(sdajd1),
+        .read_data(read_data),
+        .read_data1(read_data)        
+    );        
 
     logic [3:0] answer[2:0] = '{ 'h1, 'h2, 'h3}; // 123
     always_ff @(posedge sysclk) begin
