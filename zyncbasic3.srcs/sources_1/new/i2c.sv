@@ -16,7 +16,7 @@ module i2c(
 	output scl;
 	output [7:0] dig;
 	output [6:0] seg;
-	inout  sda;
+	inout wire sda;
 	output [15:0] data;
 	output [4:0] tens;
 	output [4:0] ones;
@@ -28,13 +28,13 @@ module i2c(
 	reg swF_r;
 	reg[19:0] cnt_20ms;
 
-	always @ (posedge clk or negedge rst)
+	always @ (posedge clk)
 		if(rst)
 			cnt_20ms <= 20'd0;
 		else
 			cnt_20ms <= cnt_20ms+1'b1;
 
-	always @ (posedge clk or negedge rst)
+	always @ (posedge clk)
 		if(rst)
 			begin
 				sw1_r <= 1'b1;
@@ -56,10 +56,10 @@ module i2c(
 	reg clk1=1'b0;
 	reg scl_r;
 
-	always @ (posedge clk or negedge rst)
+	always @ (posedge clk)
 		if(rst)
 			cnt_delay <= 10'd0;
-		else if(cnt_delay == 10'd999)
+		else if(cnt_delay == 10'd999) // 100KHz -> 10us
 			cnt_delay <= 10'd0;
 		else
 			cnt_delay <= cnt_delay+1'b1;
@@ -79,7 +79,7 @@ module i2c(
 				else count<=count+1;
 			end
 
-	always @ (posedge clk or negedge rst) begin
+	always @ (posedge clk) begin
 		if(rst)
 			cnt <= 3'd5;
 		else
@@ -94,14 +94,12 @@ module i2c(
 			end
 	end
 
-
 	`define SCL_POS		(cnt==3'd0)
 	`define SCL_HIG		(cnt==3'd1)
 	`define SCL_NEG		(cnt==3'd2)
 	`define SCL_LOW		(cnt==3'd3)
 
-
-	always @ (posedge clk or negedge rst)
+	always @ (posedge clk)
 		if(rst)
 			scl_r <= 1'b0;
 		else if(cnt==3'd0)
@@ -124,7 +122,6 @@ module i2c(
 	reg[15:0] read_data;
 
 //---------------------------------------------
-	//?��?��???��?��??��L??��}??
 	parameter 	IDLE 	= 4'd0;
 	parameter 	START1 	= 4'd1;
 	parameter 	ADD1 	= 4'd2;
@@ -142,11 +139,11 @@ module i2c(
 	parameter 	STOP2 	= 4'd14;
 
 	reg[3:0] state;
-	logic sda_r  = 1;
-	logic sda_link = 0;
+	reg sda_r;
+	reg sda_link;
 	reg[3:0] num;
 
-	always @ (posedge clk or negedge rst)
+	always @ (posedge clk)
 		begin
 			if(rst)
 				begin
@@ -162,18 +159,15 @@ module i2c(
 						begin
 							sda_link <= 1'b1;
 							sda_r <= 1'b1;
-
-							db_r <= `WRITE;
-							state <= START1;
-							/*
 							if(!sw1_r || !sw2_r)
 								begin
-									db_r <= `WRITE;
-									state <= START1;
+									// db_r <= `WRITE;
+									// state <= START1;
+									db_r <= `READ;
+									state <= START2;
 								end
 							else
 								state <= IDLE;
-							*/
 						end
 					START1:
 						begin
@@ -262,9 +256,6 @@ module i2c(
 						end
 					ACK2:	begin
 						if(/*!sda*/`SCL_NEG) begin
-							db_r <= `READ;
-							state <= START2;
-							/*
 							if(!sw1_r) begin
 								state <= MSB;
 								db_r <= `WR_DATA;
@@ -273,7 +264,6 @@ module i2c(
 								db_r <= `READ;
 								state <= START2;
 							end
-							*/
 						end
 						else state <= ACK2;
 					end
@@ -289,7 +279,7 @@ module i2c(
 						end
 						else state <= START2;
 					end
-					ADD3:	begin	//???��?��????��~?��?��?��?��???��E
+					ADD3:	begin
 						if(`SCL_LOW) begin
 							if(num==4'd8) begin
 								num <= 4'd0;
@@ -317,13 +307,13 @@ module i2c(
 					end
 					ACK3:	begin
 						if(/*!sda*/`SCL_NEG) begin
-							state <= MSB;	//?��L??��?��?????????
+							state <= MSB;
 							sda_link <= 1'b0;
 						end
-						else state <= ACK3; 		//?��?��??��L??��L??��?��?????
+						else state <= ACK3;
 					end
 					MSB:	begin
-						if(!sw2_r) begin	 //?��?��????��~?��?��
+						if(!sw2_r) begin
 							if(num<=4'd7) begin
 								state <= MSB;
 								if(`SCL_HIG) begin
@@ -348,7 +338,7 @@ module i2c(
 							else state <= MSB;
 						end
 					end
-					ACK4: begin//scl???��C??��?��?????��}?��?��?��?��sda?????��?��??��?��????��?��?��?��???��L??��}?master?��E?��?��???��?��?ack
+					ACK4: begin
 						if(/*!sda*/`SCL_HIG)
 							begin
 								sda_link <= 1'b1;
@@ -358,7 +348,7 @@ module i2c(
 						else state <= ACK4;
 					end
 					LSB:	begin
-						if(!sw2_r) begin     //?��?��????��~?��?��
+						if(!sw2_r) begin
 							if(num<=4'd7) begin
 								state <= LSB;
 								if(`SCL_HIG) begin
@@ -416,7 +406,6 @@ module i2c(
 	assign data = read_data;
 	assign swF_n = ~swF;
 
-
-	tempF ( clk1,swF,data[14:7],seg,dig, tens, ones);
+	tempF t( clk1,swF,data[14:7],seg,dig, tens, ones);
 
 endmodule

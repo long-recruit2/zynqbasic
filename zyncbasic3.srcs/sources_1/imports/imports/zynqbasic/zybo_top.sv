@@ -151,7 +151,9 @@ module ZYBO_top
         .PSCOUNTER(ps_counter),
         .EVENTUPDATE(eventupdated),
         .TENS(tens),
-        .ONES(ones)
+        .ONES(ones),
+        .read_data(read_data),
+        .read_data1(read_data1)
     );
 
     // logic [3:0] tens;
@@ -197,6 +199,7 @@ module ZYBO_top
     logic dummyscl;
     logic dummysda;
     i2c i(
+    // i2c22 i(
         .clk(sysclk),
         .rst(rst),
         .sw1(sw[0]),
@@ -211,8 +214,8 @@ module ZYBO_top
         .ones(ones)
         );
 
-    logic [7:0] read_data;
-    logic [7:0] read_data1;
+    logic [7:0] read_data = 0;
+    logic [7:0] read_data1  = 0;
     logic rstn = 1;
     temp_sensor tmp(
         .clk(sysclk),
