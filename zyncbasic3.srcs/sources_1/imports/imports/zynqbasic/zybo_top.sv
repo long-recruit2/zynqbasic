@@ -43,6 +43,8 @@ module ZYBO_top
     input wire [3:0] row,            // jb
     (* fsm_encoding = "none" *) output logic [3:0] col // jb
 );
+    wire [7:0] oled;
+    assign je = oled;
     /*
     logic scljc;
     assign scljc1 = scljc;
@@ -136,19 +138,23 @@ module ZYBO_top
     logic rst = 'b0;
     logic keyupdated = 0;
     event_t eventupdated = None;
+    (* dont_touch = "true" *) logic [31:0] ps_counter_r;
+    always_ff @(posedge sysclk) begin // this may need to be arm_clko
+        ps_counter_r <= ps_counter;
+    end
     PmodOLEDCtrl ctrl(
         .CLK(sysclk),
         .RST(rst), // rstn may not work here
-        .CS(je[0]),
-        .SDIN(je[1]),
-        .SCLK(je[3]),
-        .DC(je[4]),
-        .RES(je[5]),
-        .VBAT(je[6]),
-        .VDD(je[7]),
+        .CS(oled[0]),
+        .SDIN(oled[1]),
+        .SCLK(oled[3]),
+        .DC(oled[4]),
+        .RES(oled[5]),
+        .VBAT(oled[6]),
+        .VDD(oled[7]),
         .KEYS(keys),
         .SCREEN_UPDATE(keyupdated || counter_changed || eventupdated != None),
-        .PSCOUNTER(ps_counter),
+        .PSCOUNTER(ps_counter_r),
         .EVENTUPDATE(eventupdated),
         .TENS(tens),
         .ONES(ones),
@@ -215,7 +221,7 @@ module ZYBO_top
         );
 
     logic [7:0] read_data = 0;
-    logic [7:0] read_data1  = 0;
+    logic [7:0] read_data1 = 0;
     logic rstn = 1;
     temp_sensor tmp(
         .clk(sysclk),
@@ -223,7 +229,7 @@ module ZYBO_top
         .scl(scljd1),
         .sda(sdajd1),
         .read_data(read_data),
-        .read_data1(read_data)        
+        .read_data1(read_data1)        
     );        
 
     logic [3:0] answer[2:0] = '{ 'h1, 'h2, 'h3}; // 123

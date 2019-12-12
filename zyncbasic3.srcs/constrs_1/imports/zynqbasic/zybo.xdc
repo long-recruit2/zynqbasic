@@ -15,6 +15,9 @@ set_property -dict { PACKAGE_PIN K17   IOSTANDARD LVCMOS33 } [get_ports { sysclk
 create_clock -add -name sys_clk_pin -period 10.00 -waveform {0 5} [get_ports { sysclk }];
 # set_property -dict { PACKAGE_PIN K18   IOSTANDARD LVCMOS33 } [get_ports { rst }]; #IO_L12N_T1_MRCC_35 Sch=btn[0]
 
+#set_clock_groups -asynchronous -group [get_clocks clk_fpga_0]
+set_clock_groups -asynchronous -group [get_clocks sys_clk_pin] -group [get_clocks clk_fpga_0]
+
 ###Switches
 set_property -dict { PACKAGE_PIN G15   IOSTANDARD LVCMOS33 } [get_ports { sw[0] }]; #IO_L19N_T3_VREF_35 Sch=sw[0]
 set_property -dict { PACKAGE_PIN P15   IOSTANDARD LVCMOS33 } [get_ports { sw[1] }]; #IO_L24P_T3_34 Sch=sw[1]
